@@ -5,7 +5,7 @@ from route_funcs import datasets
 def register_routes(app):
 
     @app.route("/")
-    def hello():
+    def index():
         return render_template('home.html')
 
     app.add_url_rule('/datasets/new', 'datasets_new', datasets.new, methods=['POST'])

@@ -23,3 +23,15 @@ def s3_upload(source_file,acl='public-read'):
     sml.set_acl(acl)
 
     return destination_filename
+
+def get_s3_url(filename):
+    # Connect to S3
+    conn = boto.connect_s3(app.config["S3_KEY"], app.config["S3_SECRET"])
+    b = conn.get_bucket(app.config["S3_BUCKET"])
+    key = b.get_key(filename)
+    if key:
+        return key.generate_url(3600)
+    else:
+        return None
+
+
