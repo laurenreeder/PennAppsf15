@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, g
 from keys import s3_access_key, s3_secret_key
 from routes import register_routes
 
@@ -14,6 +14,11 @@ def setup_logging():
         app.logger.addHandler(logging.StreamHandler())
         app.logger.setLevel(logging.ERROR)
 
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 app.debug = True
 
 register_routes(app)
