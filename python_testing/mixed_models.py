@@ -4,7 +4,8 @@ from pyspark.mllib.regression import LabeledPoint
 from pyspark.context import SparkContext
 from pyspark.mllib.clustering import GaussianMixture
 from numpy import array
-import sys
+from random import gauss
+import sys, math
 
 
 def naive(filepath):
@@ -46,6 +47,9 @@ def gaussian(filepath, n):
     gmm = GaussianMixture.train(parsedData, n)
 
     # want this data to be based on what is in the dataset... based on std. dev/random around the mean
+    sample = [gauss(mean, stdev) for i in range(20)]
+    print "sample: {}".format(sample)
+
     clusterdata_1 = sc.parallelize(array([-0.1,-0.05,-0.01,-0.1, 0.9,0.8,0.75,0.935, -0.83,-0.68,-0.91,-0.76 ]).reshape(6, 2))
 
     p = gmm.predict(clusterdata_1).collect()
