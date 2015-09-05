@@ -38,14 +38,23 @@ def gaussian(filepath, n):
     data = sc.textFile(filepath)
     parsedData = data.map(lambda line: array([float(x) for x in line.strip().split(' ')]))
 
+    # What if this is text...?
+    mean = parsedData.mean()
+    stdev = parsedData.stdev()
+
     # Build the model (cluster the data)
     gmm = GaussianMixture.train(parsedData, n)
+
+    # want this data to be based on what is in the dataset... based on std. dev/random around the mean
+    clusterdata_1 = sc.parallelize(array([-0.1,-0.05,-0.01,-0.1, 0.9,0.8,0.75,0.935, -0.83,-0.68,-0.91,-0.76 ]).reshape(6, 2))
+
+    p = gmm.predict(clusterdata_1).collect()
+    print "predict: {}".format(p)
 
     # output parameters of model
     for i in range(2):
         print ("weight = ", gmm.weights[i], "mu = ", gmm.gaussians[i].mu,
                             "sigma = ", gmm.gaussians[i].sigma.toArray())
-  
 
 def main(argv):
   # Check for desired input later... look at length of argv for various models
