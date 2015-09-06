@@ -7,7 +7,7 @@ from pyspark.mllib.tree import DecisionTree, GradientBoostedTrees
 from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.evaluation import RegressionMetrics
 from pyspark.mllib.regression import LabeledPoint, LinearRegressionWithSGD, RidgeRegressionWithSGD, \
-    LassoWithSGD, IsotonicRegressionModel
+    LassoWithSGD, IsotonicRegression
 from pyspark.context import SparkContext
 from pyspark.mllib.clustering import GaussianMixture
 import numpy as np
@@ -66,7 +66,7 @@ regressors = {
         'train_func': LinearRegressionWithSGD.train,
         'defaults': {
         },
-    }
+    },
     'RidgeRegressionWithSGD': {
         'train_func': RidgeRegressionWithSGD.train,
         'defaults': {
@@ -77,8 +77,8 @@ regressors = {
         'defaults': {
         },
     },
-    'IsotonicRegressionModel': {
-        'train_func': IsotonicRegressionModel.train,
+    'IsotonicRegression': {
+        'train_func': IsotonicRegression.train,
         'defaults': {
         },
     },
@@ -157,7 +157,7 @@ def create_model(data, model_trainer, train_kwargs={}, split=None):
 
     return model, results
 
-def create_and_test_model(data, model_trainer, model_type, train_kwargs={}):
+def create_and_test_model(data, model_trainer, train_kwargs={}):
     model, results = create_model(data, model_trainer, train_kwargs={})
     if model_type == 'regressor':
         return RegressionMetrics(results).rootMeanSquareError
@@ -210,11 +210,19 @@ def get_classifier_results(file_parser, filepath, num_classes=None, train_args={
 
     print accuracies
 
-def test_all_on_data(data, model_infos, model_type, train_args={}):
-    return map(lambda name, info: (name, create_and_test_model(data, info['train_func'], info['defaults'], model_type,
-                                                               train_args=train_args)),
-               model_infos.items())
+def create_and_test_from_file(file_parser, filepath, model_info, num_classes=None, train_args={}, split=None):
+    sc = SparkContext("local", "Regressor Performance")
+    data = file_parser(sc.textFile(filepath))
 
+    return create_and_test_model(data, model_info['train_func'], model_info['defaults'],
+                                 train_args=train_args, num_classes=num_classes, split=split)
+
+def test_all_on_data(data, model_infos, model_type, train_args={}):
+    return map(lambda name, info: (name,
+                                   create_and_test_model(data, info['train_func'],
+                                                         info['defaults'], model_type,
+                                                         train_args=train_args)),
+               model_infos.items())
 
 def get_regressor_results(file_parser, filepath, num_classes=None, train_args={}):
     sc = SparkContext("local", "Regressor Performance")
@@ -283,13 +291,32 @@ def run_file(filepath, model_name, model_type, file_parser=None, num_classes=Non
         file_parser = parser_map[ext]
 
     if classifier_name == 'all':
-        if model_type == 'regressor':
+        if model_type == 'regression':
             return get_regressor_results(file_parser, filepath, num_classes)
-        elif model_type == 'classifier':
+        elif model_type == 'classification':
             return get_classifier_results(file_parser, filepath, num_classes)
-    elif any(model_name in models for models in [regressors, classifiers]):
+    elif model_name in regressors:
+        sc = SparkContext("local", model_name)
+        data = file_parser(sc.textFile(filepath))
+        args = regressors[model_name]['defaults'].copy()
+        args.update(train_args)
 
+        return create_and_test_model(data, regressors[model_name]['train_func'],
+                                         num_classes=num_classes, train_args=args,
+                                         split=[0.6, 0.4])
+    elif model_name in classifiers:
+        sc = SparkContext("local", model_name)
+        data = file_parser(sc.textFile(filepath))
+        if num_classes is None:
+            labels = data.groupBy(lambda x: x.label).collect()
+            num_classes = len(labels)
+        args = classifiers[model_name]['defaults'].copy()
+        args.update(train_args)
+        if model_name in with_numClasses:
+            train_args['numClasses'] = num_classes
 
+        return create_and_test_model(data, classifiers[model_name]['train_func'],
+                                     train_args=train_args, split=[0.6, 0.4])
 
 
 def main(argv):
