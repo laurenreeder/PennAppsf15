@@ -1,10 +1,13 @@
 from pyspark.mllib.classification import LogisticRegressionWithLBFGS, NaiveBayes, SVMWithSGD, \
     LogisticRegressionWithSGD
 
+import json
 import pyspark.mllib.classification
 from pyspark.mllib.tree import DecisionTree, GradientBoostedTrees
 from pyspark.mllib.linalg import Vectors
-from pyspark.mllib.regression import LabeledPoint
+from pyspark.mllib.evaluation import RegressionMetrics
+from pyspark.mllib.regression import LabeledPoint, LinearRegressionWithSGD, RidgeRegressionWithSGD, \
+    LassoWithSGD, IsotonicRegressionModel
 from pyspark.context import SparkContext
 from pyspark.mllib.clustering import GaussianMixture
 import numpy as np
@@ -14,19 +17,81 @@ from sklearn.metrics import pairwise_distances
 import sys, math, random
 from functools import partial
 
-multinomial_classifiers = {
-    'NaiveBayes': NaiveBayes.train,
-    'LogisticRegressionWithLBFGS': LogisticRegressionWithLBFGS.train,
-    'DecisionTree': DecisionTree.trainClassifier,
+classifiers = {
+    'NaiveBayes': {
+        'train_func': NaiveBayes.train,
+        'defaults': {
+        },
+        'type': 'classifier',
+        'multinomial': True,
+    },
+    'LogisticRegressionWithLBFGS': {
+        'train_func': LogisticRegressionWithLBFGS.train,
+        'defaults': {
+        },
+        'type': 'classifier',
+        'multinomial': True,
+    },
+    'DecisionTree': {
+        'train_func': DecisionTree.trainClassifier,
+        'defaults': {
+        },
+        'type': 'classifier',
+        'multinomial': True,
+    },
+
+    'SVMWithSGD': {
+        'train_func': SVMWithSGD.train,
+        'defaults': {
+        },
+        'type': 'classifier',
+        'multinomial': False,
+    },
+    'LogisticRegressionWithSGD': {
+        'train_func': LogisticRegressionWithSGD.train,
+        'defaults': {
+        },
+        'multinomial': False,
+    },
+    'GradientBoostedTrees': {
+        'train_func': GradientBoostedTrees.trainClassifier,
+        'defaults': {
+        },
+        'multinomial': False,
+    },
 }
 
-binomial_classifiers = {
-    'NaiveBayes': NaiveBayes.train,
-    'SVMWithSGD': SVMWithSGD.train,
-    'LogisticRegressionWithLBFGS': LogisticRegressionWithLBFGS.train,
-    'LogisticRegressionWithSGD': LogisticRegressionWithSGD.train,
-    'DecisionTree': DecisionTree.trainClassifier,
-    'GradientBoostedTrees': GradientBoostedTrees.trainClassifier
+regressors = {
+    'LinearRegressionWithSGD': {
+        'train_func': LinearRegressionWithSGD.train,
+        'defaults': {
+        },
+    }
+    'RidgeRegressionWithSGD': {
+        'train_func': RidgeRegressionWithSGD.train,
+        'defaults': {
+        },
+    },
+    'LassoWithSGD': {
+        'train_func': LassoWithSGD.train,
+        'defaults': {
+        },
+    },
+    'IsotonicRegressionModel': {
+        'train_func': IsotonicRegressionModel.train,
+        'defaults': {
+        },
+    },
+    'DecisionTree': {
+        'train_func': DecisionTree.trainRegressor,
+        'defaults': {
+        },
+    },
+    'GradientBoostedTrees': {
+        'train_func': GradientBoostedTrees.trainRegressor,
+        'defaults': {
+        },
+    },
 }
 
 with_numClasses = {
@@ -34,33 +99,66 @@ with_numClasses = {
     'DecisionTree',
 }
 
-with_categoricalFeatures = {
-    'DecisionTree',
-    'GradientBoostedTrees'
-}
-
-with_regLambda = {
-    'LogisticRegressionWithLBFGS',
-    'LogisticRegressionWithSGD',
-}
-reg_lambda = 0.000001
-
 def train_classifier(data, classifier, train_kwargs={}):
 
     # Split data aproximately into training (60%) and test (40%)
-    training, test = data.randomSplit([0.6, 0.4], seed = 0)
+    if split is not None:
+        training, test = data.randomSplit(split, seed = 0)
 
     # Train a classifier
-    model = classifier(training, **train_kwargs)
+    model = classifier(data, **train_kwargs)
 
     # Make prediction and test accuracy.
+    predictions = model.predict(data.map(lambda p : p.features))
+    results = predictions.zip(data.map(lambda p : p.label))
+
+    accuracy = 1.0 * results.filter(lambda (x, v): x == v).count() / data.count()
+
+    return accuracy
+
+def train_regressor(data, regressor_name, train_kwargs={}, split=[1.0,0.0]):
+
+    if regressor_name not in regressors:
+        raise ValueError("Invalid name: Not found in list of regressors %s" % regressors.keys())
+
+    regressor = regressors[regressor_name]
+
+    if split is not None:
+        training, test = data.randomSplit(split, seed = 0)
+
+    model = regressor(data, **train_kwargs)
+
+    # Make prediction and test accuracy.
+    predictions = model.predict(data.map(lambda p : p.features))
+    results = predictions.zip(data.map(lambda p : p.label))
+
+    accuracy = 1.0 * results.filter(lambda (x, v): x == v).count() / data.count()
+
+    return accuracy
+
+
+
+def create_model(data, model_trainer, train_kwargs={}, split=None):
+
+    if split is not None:
+        training, test = data.randomSplit(split, seed = 0)
+    else:
+        training, test = data, data
+
+    model = model_trainer(training, **train_kwargs)
+
     predictions = model.predict(test.map(lambda p : p.features))
     results = predictions.zip(test.map(lambda p : p.label))
 
-    accuracy = 1.0 * results.filter(lambda (x, v): x == v).count() / test.count()
+    return model, results
 
-    # print "bayes results... accuracy: {}".format(accuracy)
-    return accuracy
+def create_and_test_model(data, model_trainer, model_type, train_kwargs={}):
+    model, results = create_model(data, model_trainer, train_kwargs={})
+    if model_type == 'regressor':
+        return RegressionMetrics(results).rootMeanSquareError
+    elif model_type == 'classifier':
+        return 1.0 * results.filter(lambda (x, v): x == v).count() / data.count()
+
 
 def train_classifier_on_file(file_parser, filepath, classifier_name, num_classes=None):
 
@@ -76,27 +174,15 @@ def train_classifier_on_data(data, num_classes, classifier_name):
     train_kwargs = {}
     if classifier_name in with_numClasses:
         train_kwargs['numClasses'] = num_classes
+    if classifier_name not in classifiers:
+        raise ValueError('classifier_name is invalid. Options are %s'
+                         % multinomial_classifiers.keys())
 
-    if classifier_name in with_categoricalFeatures:
-        train_kwargs['categoricalFeaturesInfo'] = {}
+    if num_classes > 2 and classifiers[classifier_name]['multinomial']:
+        if not classifiers[classifier_name]['multinomial']:
+            raise ValueError('This classifier can only process binary output distributions.')
 
-    if classifier_name in with_regLambda:
-        train_kwargs['regParam'] = reg_lambda
-
-    if num_classes > 2:
-        if classifier_name not in multinomial_classifiers:
-            raise ValueError('classifier_name is invalid. Options are %s'
-                                % multinomial_classifiers.keys())
-
-        return train_classifier(data, multinomial_classifiers[classifier_name],
-                            train_kwargs=train_kwargs)
-
-    elif num_classes == 2:
-        if classifier_name not in binomial_classifiers:
-            raise ValueError('classifier_name is invalid. Options are %s'
-                                % binomial_classifiers.keys())
-
-        return train_classifier(data, binomial_classifiers[classifier_name],
+    return train_classifier(data, classifiers[classifier_name],
                             train_kwargs=train_kwargs)
 
 
@@ -110,16 +196,27 @@ def get_classified_data(sc, file_parser, filepath, num_classes=None):
     return data, num_classes
 
 
-def get_classifier_results(file_parser, filepath, num_classes=None):
+def get_classifier_results(file_parser, filepath, num_classes=None, train_args={}):
     sc = SparkContext("local", "Classifier Performance")
     data, num_classes = get_classified_data(sc, file_parser, filepath, num_classes)
     classifiers = binomial_classifiers if num_classes == 2 else multinomial_classifiers
-    accuracies = map(lambda class_name: (class_name, train_classifier_on_data(data, num_classes,
-                                                                              class_name)),
-                     classifiers.keys())
+    accuracies = test_all_on_data(data, classifiers, 'classifier', train_args=train_args)
     sc.stop()
+
     print accuracies
 
+def test_all_on_data(data, model_infos, model_type, train_args={}):
+    return map(lambda name, info: (name, create_and_test_model(data, info['train_func'], info['defaults'], model_type,
+                                                               train_args=train_args)),
+               model_infos.items())
+
+
+def get_regressor_results(file_parser, filepath, num_classes=None, train_args={}):
+    sc = SparkContext("local", "Regressor Performance")
+    data = file_parser(sc.textFile(filepath))
+    rmses = test_all_on_data(data, regressors, 'regressor', train_args=train_args)
+    sc.stop()
+    print rmses
 
 # Gaussian mixture - clusters data, but must pass in desired # of clusters
 def gaussian(filepath, n):
@@ -150,16 +247,45 @@ def parse_labeled_vectors(sc_file):
         return LabeledPoint(label, features)
     return sc_file.map(parseLine)
 
-def parse_csv(sc_file):
+def parse_json(sc_file):
+    return sc_file.map(json.loads)
+
+def parse_seperated(sc_file, sep=','):
     def parseLine(line):
-        parts = line.split(',')
+        parts = line.split(sep)
         label = float(parts[-1])
-        features = Vectors.dense([float(x) for x in parts[:-1]])
+        f_list = [float(x) for x in parts[:-1]]
+        non_zero_entries = [(i, f_list[i]) for i in xrange(len(f_list)) if f_list[i] != 0.0]
+        features = Vectors.sparse(len(f_list), non_zero_entries)
         return LabeledPoint(label, features)
     return sc_file.map(parseLine)
 
 train_classifier_on_labeled_vectors = partial(train_classifier_on_file, parse_labeled_vectors)
 results_on_labeled_vectors = partial(get_classifier_results, parse_labeled_vectors)
+
+def file_extension(filepath):
+    return filepath.split('?')[0].split('/')[-1]
+
+parser_map = {
+    'csv': parse_seperated,
+    'tsv': partial(parse_seperated, sep='\t'),
+    'json': parse_json,
+}
+
+def run_file(filepath, model_name, model_type, file_parser=None, num_classes=None, train_args={}):
+    ext = file_extension(filepath)
+    if ext in parser_map and file_parser is None:
+        file_parser = parser_map[ext]
+
+    if classifier_name == 'all':
+        if model_type == 'regressor':
+            return get_regressor_results(file_parser, filepath, num_classes)
+        elif model_type == 'classifier':
+            return get_classifier_results(file_parser, filepath, num_classes)
+    elif any(model_name in models for models in [regressors, classifiers]):
+
+
+
 
 def main(argv):
   # Check for desired input later... look at length of argv for various models
@@ -174,7 +300,7 @@ def main(argv):
             train_classifier_on_labeled_vectors(str(sys.argv[3]),
                                                 str(sys.argv[2]))
         elif len(sys.argv) == 3:
-            get_classifier_results(parse_csv, str(sys.argv[2]))
+            get_classifier_results(parse_seperated, str(sys.argv[2]))
 if __name__ == '__main__':
     main(sys.argv)
 
