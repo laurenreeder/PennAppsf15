@@ -277,7 +277,7 @@ train_classifier_on_labeled_vectors = partial(train_classifier_on_file, parse_la
 results_on_labeled_vectors = partial(get_classifier_results, parse_labeled_vectors)
 
 def file_extension(filepath):
-    return filepath.split('?')[0].split('/')[-1]
+    return filepath.split('?')[0].split('/')[-1].split('.')[-1]
 
 parser_map = {
     'csv': parse_seperated,
@@ -289,8 +289,10 @@ def run_file(filepath, model_name, model_type, file_parser=None, num_classes=Non
     ext = file_extension(filepath)
     if ext in parser_map and file_parser is None:
         file_parser = parser_map[ext]
+    if file_parser is None:
+        return "foo"
 
-    if classifier_name == 'all':
+    if model_name == 'all':
         if model_type == 'regression':
             return get_regressor_results(file_parser, filepath, num_classes)
         elif model_type == 'classification':
