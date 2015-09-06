@@ -3,9 +3,12 @@ from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.context import SparkContext
 from pyspark.mllib.clustering import GaussianMixture
-from numpy import array
+import numpy as np
+from sklearn import metrics, datasets
+from sklearn.cluster import KMeans
+from sklearn.metrics import pairwise_distances
+import sys, math, random
 from functools import partial
-import sys
 
 
 def train_classifier(data, classifier, train_kwargs={}):
@@ -49,7 +52,7 @@ train_classifier_on_file = partial(train_on_file, parse_labeled_vectors)
 def gaussian(filepath, n):
     sc = SparkContext("local", "Gaussian App")
     data = sc.textFile(filepath)
-    parsedData = data.map(lambda line: array([float(x) for x in line.strip().split(' ')]))
+    parsedData = data.map(lambda line: np.array([float(x) for x in line.strip().split(' ')]))
 
     # Build the model (cluster the data)
     gmm = GaussianMixture.train(parsedData, n)
@@ -58,11 +61,18 @@ def gaussian(filepath, n):
     for i in range(2):
         print ("weight = ", gmm.weights[i], "mu = ", gmm.gaussians[i].mu,
                             "sigma = ", gmm.gaussians[i].sigma.toArray())
+   
+    # Metric for unsupervised - silhouette coefficient, higher numbers ~ better fit
+    labels = gmm.predict(parsedData).collect()
+    features = np.array(map(lambda x : x.strip().split(" "), data.collect()))
+    features = features.reshape(features.size/2, 2)
+    score = metrics.silhouette_score(features, np.array(labels), metric='euclidean')
+    print "score: {}".format(score)
 
 
 def main(argv):
   # Check for desired input later... look at length of argv for various models
-    #gaussian(argv[1],int(argv[2]))
+#    gaussian(argv[1],int(argv[2]))
     if sys.argv[1] == 'classifier':
         train_classifier_on_file(str(sys.argv[3]), str(sys.argv[2]), int(sys.argv[4]))
 
