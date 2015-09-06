@@ -13,13 +13,14 @@ def new():
         name = request.form['name']
         print request.form
         s3_key = None
-        if 'dataset_url' in request.form:
+        print request.files
+        if request.form.get('dataset_url', False):
             s3_key = s3_download(request.form['dataset_url'])
 
         elif 'dataset' in request.files:
             dataset = request.files['dataset']
             print dataset
-            if dataset and allowed_file(dataset.filename):
+            if dataset:
                 s3_key = s3_upload(dataset)
 
         if s3_key:
