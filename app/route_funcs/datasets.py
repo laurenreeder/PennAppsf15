@@ -44,7 +44,7 @@ def view(dataset_name):
     if res is not None:
         s3_key = res[0]
         s3_url = get_s3_url(s3_key)
-        return render_template('dataset.html', download_url=s3_url, s3_key=s3_key)
+        return render_template('dataset.html', download_url=s3_url, s3_key=s3_key, name=dataset_name)
     return "Dataset does not exist", 404
 
 def learn(dataset_name):
