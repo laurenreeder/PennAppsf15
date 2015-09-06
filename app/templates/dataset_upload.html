@@ -18,7 +18,11 @@
     <body>
         <h1>Upload a Dataset</h1>
         <form action="/datasets/new" method="post" enctype="multipart/form-data">
-            Name this Dataset:<input type="text" name="name"/><br/>
+            <div class="form-group">
+                <label for="datasetName">Name this Dataset: </label>
+                <input type="text" class="form-control" name="dataset_name" id="dataset_id" placeholder="">
+            </div>
+
             <div class="form-group">
                 <label for="InputFile">File input: </label>
                 <input type="file" id="InputFile" name="dataset">
