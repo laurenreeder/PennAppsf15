@@ -7,8 +7,8 @@ import urllib2
 
 def s3_upload(source_file,acl='public-read'):
     source_filename = secure_filename(source_file.filename)
-
-    destination_filename = uuid4().hex
+    source_extension = file_extension(source_filename)
+    destination_filename = uuid4().hex + source_extension
 
     # Connect to S3
     conn = boto.connect_s3(app.config["S3_KEY"], app.config["S3_SECRET"])
@@ -24,11 +24,13 @@ def s3_upload(source_file,acl='public-read'):
 
     return destination_filename
 
+def file_extension(filepath):
+    return filepath.split('?')[0].split('/')[-1].split('.')[-1]
 
 def s3_download(source_url,acl='public-read'):
 
     source_filename = source_url.split('?')[0].split('/')[-1]
-    source_extension = os.path.splitext(source_filename)[1]
+    source_extension = file_extension(source_filename)
 
     destination_filename = uuid4().hex + source_extension
 
