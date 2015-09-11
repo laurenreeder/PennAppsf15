@@ -250,7 +250,7 @@ def gaussian(filepath, n):
     features = np.array(map(lambda x : x.strip().split(" "), data.collect()))
     features = features.reshape(features.size/2, 2)
     score = metrics.silhouette_score(features, np.array(labels), metric='euclidean')
-    print "score: {}".format(score)
+    return score
 
 def parse_labeled_vectors(sc_file):
     def parseLine(line):
@@ -290,7 +290,7 @@ def run_file(filepath, model_name, model_type, file_parser=None, num_classes=Non
     if ext in parser_map and file_parser is None:
         file_parser = parser_map[ext]
     if file_parser is None:
-        return "foo"
+        return "file_parser none"
 
     if model_name == 'all':
         if model_type == 'regression':
