@@ -220,9 +220,9 @@ def create_and_test_from_file(file_parser, filepath, model_info, num_classes=Non
 def test_all_on_data(data, model_infos, model_type, train_args={}):
     return map(lambda name, info: (name,
                                    create_and_test_model(data, info['train_func'],
-                                                         info['defaults'], model_type,
-                                                         train_args=train_args)),
-               model_infos.items())
+                                                        info['defaults'], model_type,
+                                                        train_args=train_args)),
+                                                        model_infos.items())
 
 def get_regressor_results(file_parser, filepath, num_classes=None, train_args={}):
     sc = SparkContext("local", "Regressor Performance")
