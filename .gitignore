@@ -1,3 +1,4 @@
 app/keys/
+app/keys.py
 *.pyc
 *.swp
