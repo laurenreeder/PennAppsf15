@@ -263,7 +263,7 @@ def parse_labeled_vectors(sc_file):
 def parse_json(sc_file):
     return sc_file.map(json.loads)
 
-def parse_seperated(sc_file, sep=','):
+def parse_separated(sc_file, sep=','):
     def parseLine(line):
         parts = line.split(sep)
         label = float(parts[-1])
@@ -280,8 +280,10 @@ def file_extension(filepath):
     return filepath.split('?')[0].split('/')[-1].split('.')[-1]
 
 parser_map = {
-    'csv': parse_seperated,
-    'tsv': partial(parse_seperated, sep='\t'),
+    'csv': parse_separated
+,
+    'tsv': partial(parse_separated
+    , sep='\t'),
     'json': parse_json,
 }
 
@@ -334,7 +336,8 @@ def main(argv):
             train_classifier_on_labeled_vectors(str(sys.argv[3]),
                                                 str(sys.argv[2]))
         elif len(sys.argv) == 3:
-            get_classifier_results(parse_seperated, str(sys.argv[2]))
+            get_classifier_results(parse_separated
+            , str(sys.argv[2]))
 if __name__ == '__main__':
     main(sys.argv)
 
