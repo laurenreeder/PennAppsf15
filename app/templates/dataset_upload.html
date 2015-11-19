@@ -11,6 +11,8 @@
             var i = $('#enter-categories').size() + 1;
             $('#enter-categories').append('<input type="text" class="form-control" name="category"> ');
         });
+
+        $('#remove-category').click(function(){});
     });
     </script>
 
@@ -41,7 +43,9 @@
 
             <div class="form-group">
                 <label for="InputFile">File input: </label>
-                <input type="file" id="InputFile" name="dataset">
+                <span class="btn btn-default btn-file">
+                    <input type="file" id="InputFile" name="dataset">
+                </span>
                 <p class="help-block">Upload a file with the data you would like to be analyzed.</p>
             </div>
 
