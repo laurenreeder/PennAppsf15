@@ -1,5 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+
+
+        $('#add-category').click(function(e) {
+            e.preventDefault();
+            var i = $('#enter-categories').size() + 1;
+            $('#enter-categories').append('<input type="text" class="form-control" name="category"> ');
+        });
+    });
+    </script>
+
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -14,10 +28,12 @@
           <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
           <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
+
+
     </head>
     <body>
         <h1>Upload a Dataset</h1>
-        <form action="/datasets/new" method="post" enctype="multipart/form-data">
+        <form action="/datasets/new" method="post" enctype="multipart/form-data" class="upload-form">
             <div class="form-group">
                 <label for="datasetName">Name this Dataset: </label>
                 <input type="text" class="form-control" name="dataset_name" id="dataset_id" placeholder="">
@@ -33,6 +49,23 @@
                 <label for="InputURL">Or enter a URL: </label>
                 <input type="text" class="form-control" name="dataset_url" id="exampleInputPassword1" placeholder="">
             </div>
+
+            <div class="form-group" id="enter-categories">
+                <label for="InputCategories">(Optional) Enter classification categories for your dataset. </label>
+                <input type="text" class="form-control" name="category" placeholder="Apple"> 
+                <input type="text" class="form-control" name="category2" placeholder="Orange"> 
+            </div>
+            <div>
+                <button id="add-category" class="btn btn-default">Add Category</button>
+            </div>
+
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+
             <!-- Choose the file:<input type="file" name="dataset"/><br/> -->
             <!-- Or enter a URL:<input type="text" name="dataset_url"/> -->
             <button class="btn btn-default" type="submit" id="subButton"/>Submit</button>

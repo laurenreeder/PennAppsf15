@@ -2525,6 +2525,8 @@ input[type="checkbox"] {
 }
 input[type="file"] {
   display: block;
+  color: #FFFFFF
+
 }
 input[type="range"] {
   display: block;
