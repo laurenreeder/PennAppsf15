@@ -9,11 +9,34 @@
         $('#add-category').click(function(e) {
             e.preventDefault();
             var i = $('#enter-categories').size() + 1;
-            $('#enter-categories').append('<input type="text" class="form-control" name="category"> ');
+            $('#enter-categories').append('<input type="text" class="form-control categories" name="category" placeholder="New Category"> ');
         });
 
         $('#remove-category').click(function(){});
     });
+
+    $(document).on('change', '.btn-file :file', function() {
+      var input = $(this),
+          numFiles = input.get(0).files ? input.get(0).files.length : 1,
+          label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+      input.trigger('fileselect', [numFiles, label]);
+    });
+
+    $(document).ready( function() {
+        $('.btn-file :file').on('fileselect', function(event, numFiles, label) {
+            
+            var input = $(this).parents('.form-group').find(':text.fselect'),
+                log = numFiles > 1 ? numFiles + ' files selected' : label;
+            
+            if( input.length ) {
+                input.val(log);
+            } else {
+                if( log ) alert(log);
+            }
+            
+        });
+    });
+
     </script>
 
     <head>
@@ -23,7 +46,7 @@
         <title>PennApps Fall '15</title>
 
         <link rel='stylesheet' type="text/css" href="/static/css/style.css">
-        <link rel='stylesheet' type="text/css" href="/static/css/style.css">
+        <link rel='stylesheet' type="text/css" href="/static/css/bootstrap.min.css">
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
         <!--[if lt IE 9]>
@@ -34,52 +57,106 @@
 
     </head>
     <body>
-        <h1>Upload a Dataset</h1>
-        <form action="/datasets/new" method="post" enctype="multipart/form-data" class="upload-form">
-            <div class="form-group">
-                <label for="datasetName">Name this Dataset: </label>
-                <input type="text" class="form-control" name="dataset_name" id="dataset_id" placeholder="">
+        <!-- Nav Bar: Eventally own file -->
+        <nav class="navbar navbar-default">
+          <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="#">Brand</a>
             </div>
 
-            <div class="form-group">
-                <label for="InputFile">File input: </label>
-                <span class="btn btn-default btn-file">
-                    <input type="file" id="InputFile" name="dataset">
-                </span>
-                <p class="help-block">Upload a file with the data you would like to be analyzed.</p>
-            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
+                <li><a href="#">Link</a></li>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">Action</a></li>
+                    <li><a href="#">Another action</a></li>
+                    <li><a href="#">Something else here</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a href="#">Separated link</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a href="#">One more separated link</a></li>
+                  </ul>
+                </li>
+              </ul>
+              <form class="navbar-form navbar-left" role="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" placeholder="Search">
+                </div>
+                <button type="submit" class="btn btn-default">Submit</button>
+              </form>
+              <ul class="nav navbar-nav navbar-right">
+                <li><a href="#">Link</a></li>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">Action</a></li>
+                    <li><a href="#">Another action</a></li>
+                    <li><a href="#">Something else here</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a href="#">Separated link</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+        </nav>
 
-            <div class="form-group">
-                <label for="InputURL">Or enter a URL: </label>
-                <input type="text" class="form-control" name="dataset_url" id="exampleInputPassword1" placeholder="">
-            </div>
+        <!-- Main Body -->
+        <div class="container">
+            <h1>Upload a Dataset</h1>
 
-            <div class="form-group" id="enter-categories">
-                <label for="InputCategories">(Optional) Enter classification categories for your dataset. </label>
-                <input type="text" class="form-control" name="category" placeholder="Apple"> 
-                <input type="text" class="form-control" name="category2" placeholder="Orange"> 
-            </div>
-            <div>
-                <button id="add-category" class="btn btn-default">Add Category</button>
-            </div>
+            <form action="/datasets/new" method="post" enctype="multipart/form-data" class="upload-form">
 
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
+                <div class="form-group">
+                    <label for="datasetName">Name this Dataset: </label>
+                    <input type="text" class="form-control" name="dataset_name" id="dataset_id" placeholder="">
+                </div>
 
-            <!-- Choose the file:<input type="file" name="dataset"/><br/> -->
-            <!-- Or enter a URL:<input type="text" name="dataset_url"/> -->
-            <button class="btn btn-default" type="submit" id="subButton"/>Submit</button>
-        </form>
+                <div class="form-group">
+                    <label for="datasetUploaf">Upload your Dataset: </label>
+                    <div class="input-group">
+                        <span class="input-group-btn">
+                            <span class="btn btn-primary btn-file">Browse<input type="file" multiple name="dataset_upload"></span>
+                        </span>
+                        <input type="text" class="form-control fselect" readonly placeholder="File(s) appear here">
+                    </div>
+                </div>
 
-        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+                <div class="form-group">
+                    <label for="InputURL">Or enter a URL: </label>
+                    <input type="text" class="form-control" name="dataset_url" id="exampleInputPassword1" placeholder="">
+                </div>
 
-        <!-- Include all compiled plugins (below), or include individual files as needed -->
-        <script src="/static/js/bootstrap.min.js"></script>
+                <div class="form-group" id="enter-categories">
+                    <label for="InputCategories">(Optional) Enter classification categories for your dataset: </label>
+                    <input type="text" class="form-control categories" name="category" placeholder="Apple"> 
+                    <input type="text" class="form-control categories" name="category2" placeholder="Orange"> 
+                </div>
+                <div>
+                    <button id="add-category" class="btn btn-default" style="margin-bottom:10px;">Add Category</button>
+                </div>
+
+                <button class="btn btn-primary" type="submit" id="subButton"/>Submit</button>
+            </form>
+
+            <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+            <!-- Include all compiled plugins (below), or include individual files as needed -->
+            <script src="/static/js/bootstrap.min.js"></script>
+     
+        </div>
      </body>
 </html>
 
