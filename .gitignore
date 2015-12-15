@@ -5,3 +5,4 @@ app/uploads
 .idea
 *.pyc
 *.swp
+.DS_Store
