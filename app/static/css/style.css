@@ -59,3 +59,15 @@
 .categories {
   margin-top: 10px;
   margin-bottom: 10px;
+}
+
+/* For wide buttons */
+.full-width {
+  width:100%;
+  display:block;
+}
+
+/* Don't show categories */
+.no-show {
+  display: none;
+}
