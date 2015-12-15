@@ -53,6 +53,10 @@ def new():
 
     return render_template('dataset_upload.html')
 
+def test():
+
+    return render_template('dataset.html', name="dataset_name", image="../static/img/mountain.jpg", categories=["Apple", "Orange", "Erik"])
+
 def view(dataset_name):
     conn = get_db()
     cursor = conn.cursor()
@@ -62,7 +66,7 @@ def view(dataset_name):
     if res is not None:
         s3_key = res[0]
         s3_url = get_s3_url(s3_key)
-        return render_template('dataset.html', download_url=s3_url, s3_key=s3_key, name=dataset_name)
+        return render_template('dataset.html', download_url=s3_url, s3_key=s3_key, name=dataset_name, image="../static/img/mountain.jpg", categories=["Apple", "Orange", "Erik"])
     return "Dataset does not exist", 404
 
 def learn(dataset_name):
@@ -94,7 +98,7 @@ def run_learning():
     results[code] = None
     async_result = pool.apply_async(run_file, (s3_key, model_name, model_type), callback=partial(set_results, code))
     run_file(s3_key, model_name, model_type)
-    return code
+    return 
 
 def get_learning_result():
     code = request.args['result_id']
