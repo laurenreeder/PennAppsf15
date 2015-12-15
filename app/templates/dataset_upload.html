@@ -6,17 +6,25 @@
     <script type="text/javascript">
 
     $(document).ready(function() {
-
+        var i = 2;
 
 
 
         $('#add-category').click(function(e) {
             e.preventDefault();
-            var i = $('#enter-categories').size() + 1;
-            $('#enter-categories').append('<input type="text" class="form-control categories" name="category" placeholder="New Category"> ');
+            i = i + 1;
+            $('#enter-categories').append('<input type="text" class="form-control categories new' + i + '" name="category" placeholder="New Category"> ');
         });
 
-        $('#remove-category').click(function(){});
+        $('#remove-category').click(function(e){
+            e.preventDefault();
+            if (i == 2) {
+                alert("Cannot have fewer than 2 input categories");
+                return;
+            }
+            $('.form-group').find(':text.categories.new' + i).remove();
+            i = i - 1;
+        });
     });
 
     $(document).on('change', '.btn-file :file', function() {
@@ -51,13 +59,6 @@
 
         <link rel='stylesheet' type="text/css" href="/static/css/style.css">
         <link rel='stylesheet' type="text/css" href="/static/css/bootstrap.min.css">
-        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-          <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-          <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-        <![endif]-->
-
 
     </head>
     <body>
@@ -86,17 +87,20 @@
 
         <!-- Main Body -->
         <div class="container">
+            <!-- Description -->
             <h1>Upload a Dataset</h1>
+            <p>Here are some nice things and instructions that we should give before users upload their dataset.</p>
 
             <form action="/datasets/new" method="post" enctype="multipart/form-data" class="upload-form">
 
                 <div class="form-group">
-                    <label for="datasetName">Name this Dataset: </label>
+                    <label for="datasetName"><h3>Name this Dataset</h3></label>
                     <input type="text" class="form-control" name="dataset_name" id="dataset_id" placeholder="">
                 </div>
 
                 <div class="form-group">
-                    <label for="datasetUploaf">Upload your Dataset: </label>
+                    <label for="datasetUploaf"><h3>Upload your Dataset</h3></label>
+                    <p>Upload a file with the data you would like to be analyzed.</p>
                     <div class="input-group">
                         <span class="input-group-btn">
                             <span class="btn btn-primary btn-file">Browse<input type="file" multiple name="dataset_upload"></span>
@@ -106,20 +110,25 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="InputURL">Or enter a URL: </label>
-                    <input type="text" class="form-control" name="dataset_url" id="exampleInputPassword1" placeholder="">
+                    <label for="InputURL"><h3>Or enter a URL</h3></label>
+                    <input type="text" class="form-control" name="dataset_url" placeholder="">
                 </div>
 
                 <div class="form-group" id="enter-categories">
-                    <label for="InputCategories">(Optional) Enter classification categories for your dataset: </label>
+                    <label for="InputCategories"><h3>Enter classification categories for your dataset</h3></label>
+                    <p>This is optional.</p>
                     <input type="text" class="form-control categories" name="category" placeholder="Apple"> 
                     <input type="text" class="form-control categories" name="category2" placeholder="Orange"> 
                 </div>
-                <div>
-                    <button id="add-category" class="btn btn-default" style="margin-bottom:10px;">Add Category</button>
+
+                <!-- Add / remove buttons -->
+
+                <div class="btn-group" role="group">
+                    <button type="button" id="add-category" class="btn btn-success">Add Category</button>
+                    <button type="button" id="remove-category" class="btn btn-danger">Remove Category</button>
                 </div>
 
-                <button class="btn btn-primary" type="submit" id="subButton"/>Submit</button>
+                <button class="btn btn-primary full-width" type="submit" id="subButton"/>Submit</button>
             </form>
 
             <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

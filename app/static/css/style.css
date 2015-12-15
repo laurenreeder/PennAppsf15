@@ -56,7 +56,28 @@
   display: block;
 }
 
+/* Button formatting for upload page */
+
 .categories {
   margin-top: 10px;
   margin-bottom: 10px;
+}
+
+#add-category {
+  margin-bottom: 50px;
+}
+
+#remove-category {
+  margin-bottom: 50px
+}
+
+/* For wide buttons */
+.full-width {
+  width:100%;
+  display:block;
+}
+
+/* Don't show categories */
+.no-show {
+  display: none;
 }
