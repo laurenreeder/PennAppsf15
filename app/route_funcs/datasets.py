@@ -1,4 +1,6 @@
-from flask import request, render_template, redirect, url_for, jsonify
+from flask import request, render_template, redirect, url_for, jsonify, current_app
+import os
+import tarfile
 from functools import partial
 
 
@@ -12,6 +14,16 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+
+def unzipFile(fileName, dirName):
+    extract_dir = "./static/images/%s" % dirName
+    os.mkdir(extract_dir)
+
+    tf = tarfile.open(name=fileName)
+    tf.extractall(path=extract_dir)
+    return [extract_dir + "/" + member.name for member in tf.getmembers() if member.isfile() and not member.name.split('/')[1].startswith("._")]
+
+
 def new():
     if request.method == "POST":
         name = request.form['dataset_name']
@@ -20,23 +32,26 @@ def new():
         print request.form
         s3_key = None
         print request.files
-        if request.form.get('dataset_url', False):
-            s3_key = s3_download(request.form['dataset_url'])
+        #if request.form.get('dataset_url', False):
+        #    s3_key = s3_download(request.form['dataset_url'])
 
-        elif 'dataset' in request.files:
-            dataset = request.files['dataset']
-            print dataset
+        if 'dataset_upload' in request.files:
+            dataset = request.files['dataset_upload']
             if dataset:
-                s3_key = s3_upload(dataset)
-
-        if s3_key:
-            print s3_key
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO datasets VALUES (%s,%s)", (name, s3_key))
-            conn.commit()
-            cursor.close()
-            return redirect(url_for('datasets_view', dataset_name=name))
+                id = uuid4().hex
+                filename = dataset.filename
+                path_to_file = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                dataset.save(path_to_file)
+                results = unzipFile(path_to_file, str(id))
+                print results
+                conn = get_db()
+                cursor = conn.cursor()
+                cursor.execute("INSERT INTO datasets VALUES (%s,%s)", (name, s3_key))
+                for path in results:
+                    cursor.execute("INSERT INTO images VALUES (%s,%s)", (name, path));
+                conn.commit()
+                cursor.close()
+                return redirect(url_for('datasets_view', dataset_name=name))
 
     return render_template('dataset_upload.html')
 
@@ -47,13 +62,13 @@ def test():
 def view(dataset_name):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT s3_key FROM datasets WHERE name = %s LIMIT 1", (dataset_name,))
-    res = cursor.fetchone()
+    cursor.execute("SELECT path FROM images WHERE dataset_name = %s LIMIT 1", (dataset_name,))
+    res = cursor.fetchone()[0][1:]
     cursor.close()
     if res is not None:
-        s3_key = res[0]
-        s3_url = get_s3_url(s3_key)
-        return render_template('dataset.html', download_url=s3_url, s3_key=s3_key, name=dataset_name, image="../static/img/mountain.jpg", categories=["Apple", "Orange", "Erik"])
+        #s3_key = res[0]
+        #s3_url = get_s3_url(s3_key)
+        return render_template('dataset.html', name=dataset_name, image=res, categories=["Apple", "Orange", "Erik"])
     return "Dataset does not exist", 404
 
 def learn(dataset_name):

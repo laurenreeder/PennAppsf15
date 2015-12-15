@@ -1,4 +1,7 @@
 app/keys/
 app/keys.py
+app/static/images
+app/uploads
+.idea
 *.pyc
 *.swp
