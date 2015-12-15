@@ -20,31 +20,58 @@
 
   	});
 
+
     </script>
     <head>
     	  <title> Label the Image </title>
     </head>
     <body>
-        <h1 class="text-center">Label the Image</h1>
+        <!-- Nav Bar: Eventally own file -->
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <div class="container-fluid">
 
-        <div class="classify-image">
-        	<img class="img-responsive" src={{ image }}>
+                <!-- Brand and toggle get grouped for better mobile display -->
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="#">User-Driven Image Labeling and Classification</a>
+                    </div>
+
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <form class="navbar-form navbar-right" role="search">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Search">
+                            </div>
+                            <button type="submit" class="btn btn-default">Submit</button>
+                        </form>
+                    </div><!-- /.navbar-collapse -->
+                </div><!-- /.container-fluid -->
+            </div>
+        </nav>
+
+        <!-- Main Body -->
+        <div class="container">
+
+            <h1 class="text-center">Label the Image</h1>
+
+            <div class="classify-image">
+            	<img class="img-responsive img-rounded" src={{ image }}>
+            </div>
+
+            <br>
+
+            <div class="btn-group-lg text-center">
+                {% for category in categories %}
+                	<button class="btn btn-default category-button"> {{category}} </button> 
+
+                {% endfor %}
+            </div>
         </div>
 
-        <br>
+            <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 
-        <div class="btn-group-lg text-center">
-        {% for category in categories %}
-        	<button class="btn btn-default category-button"> {{category}} </button> 
-
-        {% endfor %}
-    </div>
-
-        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-
-        <!-- Include all compiled plugins (below), or include individual files as needed -->
-        <script src="/static/js/bootstrap.min.js"></script>
+            <!-- Include all compiled plugins (below), or include individual files as needed -->
+            <script src="/static/js/bootstrap.min.js"></script>
      </body>
 </html>
 

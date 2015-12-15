@@ -38,6 +38,10 @@ def new():
 
     return render_template('dataset_upload.html')
 
+def test():
+
+    return render_template('dataset.html', name="dataset_name", image="../static/img/mountain.jpg", categories=["Apple", "Orange", "Erik"])
+
 def view(dataset_name):
     conn = get_db()
     cursor = conn.cursor()
