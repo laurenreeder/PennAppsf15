@@ -27,8 +27,7 @@ def unzipFile(fileName, dirName):
 def new():
     if request.method == "POST":
         name = request.form['dataset_name']
-       # categories = request.form['enter-categories'] 
-      # print categories
+        
         print request.form
         s3_key = None
         print request.files
