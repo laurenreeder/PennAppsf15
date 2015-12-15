@@ -1,12 +1,14 @@
 from flask import Flask, render_template, g
 from keys import s3_access_key, s3_secret_key
 from routes import register_routes
+import logging
 
 app = Flask(__name__)
 
 app.config['S3_KEY'] = s3_access_key
 app.config['S3_SECRET'] = s3_secret_key
 app.config['S3_BUCKET'] = 'wissmann-reeder'
+app.config['UPLOAD_FOLDER'] = './uploads'
 @app.before_first_request
 def setup_logging():
     if not app.debug:
