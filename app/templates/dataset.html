@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--  Needs image = image link, categories, -->
 <html lang="en">
 	<link rel='stylesheet' type="text/css" href="/static/css/bootstrap.min.css">
     
@@ -8,8 +9,16 @@
 
     $(document).ready(function() {
 
+    	var base = 65;
+    	$("body").keydown(function(e) {
+    		var key = e.which % 65;
+    		console.log("{{categories}}");
+    		var num_cat = "{{ categories.length }}";
+    		console.log(key)
+    		if (key < num_cat) $(".btn-group-lg").eq(key).click();
+    	});
 
-    )});
+  	});
 
     </script>
     <head>
@@ -18,7 +27,18 @@
     <body>
         <h1 class="text-center">Label the Image</h1>
 
-        <img class="img-responsive" src={{ image }}>
+        <div class="classify-image">
+        	<img class="img-responsive" src={{ image }}>
+        </div>
+
+        <br>
+
+        <div class="btn-group-lg text-center">
+        {% for category in categories %}
+        	<button class="btn btn-default category-button"> {{category}} </button> 
+
+        {% endfor %}
+    </div>
 
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
