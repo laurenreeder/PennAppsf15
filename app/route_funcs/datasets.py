@@ -23,6 +23,15 @@ def unzipFile(fileName, dirName):
     tf.extractall(path=extract_dir)
     return [extract_dir + "/" + member.name for member in tf.getmembers() if member.isfile() and not member.name.split('/')[1].startswith("._")]
 
+def rate(dataset_name):
+    label = request.args.get("label")
+    id = request.args.get("image_id")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE images SET label=%s WHERE dataset_name=%s and id=%s", (label, dataset_name, id))
+    cursor.close()
+    conn.commit()
+    return redirect(url_for('datasets_view', dataset_name=dataset_name))
 
 def new():
     if request.method == "POST":
@@ -47,7 +56,8 @@ def new():
                 cursor = conn.cursor()
                 cursor.execute("INSERT INTO datasets VALUES (%s,%s)", (name, s3_key))
                 for path in results:
-                    cursor.execute("INSERT INTO images VALUES (%s,%s)", (name, path))
+                    image_id = uuid4().hex
+                    cursor.execute("INSERT INTO images VALUES (%s,%s,%s)", (image_id, name, path[1:]))
                 for category in categories:
                     cursor.execute("INSERT INTO categories VALUES (%s,%s)", (name, category))
                 conn.commit()
@@ -63,15 +73,14 @@ def test():
 def view(dataset_name):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT path FROM images WHERE dataset_name = %s LIMIT 1", (dataset_name,))
-    res = cursor.fetchone()[0][1:]
-    cursor.execute("SELECT category FROM categories WHERE dataset_name = %s", (dataset_name,))
-    categories = [tup[0] for tup in cursor.fetchall()]
-    cursor.close()
-    if res is not None:
-        #s3_key = res[0]
-        #s3_url = get_s3_url(s3_key)
-        return render_template('dataset.html', name=dataset_name, image=res, categories=categories)
+    cursor.execute("SELECT id, path FROM images WHERE dataset_name = %s and label ISNULL LIMIT 1", (dataset_name,))
+    res = cursor.fetchone()
+    if res:
+        id, path = res
+        cursor.execute("SELECT category FROM categories WHERE dataset_name = %s", (dataset_name,))
+        categories = [tup[0] for tup in cursor.fetchall()]
+        cursor.close()
+        return render_template('dataset.html', name=dataset_name, image=path, categories=categories, image_id=id)
     return "Dataset does not exist", 404
 
 def learn(dataset_name):
