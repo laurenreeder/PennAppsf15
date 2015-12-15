@@ -10,7 +10,6 @@
             e.preventDefault();
             i = i + 1;
             $('#enter-categories').append('<input type="text" class="form-control categories new' + i + '" name="category" placeholder="New Category"> ');
-            console.log("i = " + i);
         });
 
         $('#remove-category').click(function(e){
@@ -21,7 +20,6 @@
             }
             $('.form-group').find(':text.categories.new' + i).remove();
             i = i - 1;
-            console.log("i = " + i);
         });
     });
 
@@ -129,12 +127,12 @@
             <form action="/datasets/new" method="post" enctype="multipart/form-data" class="upload-form">
 
                 <div class="form-group">
-                    <label for="datasetName">Name this Dataset: </label>
+                    <label for="datasetName"><h3>Name this Dataset</h3></label>
                     <input type="text" class="form-control" name="dataset_name" id="dataset_id" placeholder="">
                 </div>
 
                 <div class="form-group">
-                    <label for="datasetUploaf">Upload your Dataset: </label>
+                    <label for="datasetUploaf"><h3>Upload your Dataset</h3></label>
                     <div class="input-group">
                         <span class="input-group-btn">
                             <span class="btn btn-primary btn-file">Browse<input type="file" multiple name="dataset_upload"></span>
@@ -144,24 +142,32 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="InputURL">Or enter a URL: </label>
+                    <label for="InputURL"><h3>Or enter a URL</h3></label>
                     <input type="text" class="form-control" name="dataset_url" placeholder="">
                 </div>
 
                 <div class="form-group" id="enter-categories">
-                    <label for="InputCategories">(Optional) Enter classification categories for your dataset: </label>
+                    <label for="InputCategories"><h3>(Optional) Enter classification categories for your dataset</h3></label>
                     <input type="text" class="form-control categories" name="category" placeholder="Apple"> 
                     <input type="text" class="form-control categories" name="category2" placeholder="Orange"> 
                 </div>
 
                 <!-- Add / remove buttons -->
-                <div>
+
+                <div class="btn-group" role="group">
+                    <button type="button" id="add-category" class="btn btn-success" style="margin-bottom:10px;">Add Category</button>
+                    <button type="button" id="remove-category" class="btn btn-danger" style="margin-bottom:10px;">Remove Category</button>
+                </div>
+
+
+
+                <!--<div>
                     <button id="add-category" class="btn btn-success" style="margin-bottom:10px;">Add Category</button>
                 </div>
 
                 <div>
                     <button id="remove-category" class="btn btn-danger" style="margin-bottom:10px;">Remove Category</button>
-                </div>
+                </div> -->
 
                 <button class="btn btn-primary full-width" type="submit" id="subButton"/>Submit</button>
             </form>
