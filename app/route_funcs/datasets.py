@@ -113,7 +113,7 @@ def run_learning():
     results[code] = None
     async_result = pool.apply_async(run_file, (s3_key, model_name, model_type), callback=partial(set_results, code))
     run_file(s3_key, model_name, model_type)
-    return 
+    return
 
 def get_learning_result():
     code = request.args['result_id']
