@@ -1,16 +1,16 @@
 from sklearn.svm import SVC
-from generate_features import featureVectorsFromDirectory as fv
+from generate_features import *
 
 def train_classifier(X, y):
 	clf = SVC()
 	clf.fit(X, y)
 	return clf
 
-def train_with_images(test_dirs, labels):
+def train_with_image_dirs(test_dirs, labels):
 	if len(labels) != len(test_dirs):
 		raise ValueError("Different number of image categories than labels for classification")
-	# Get feature vectors for each directory 
- 	X = [fv(test_dir) for test_dir in test_dirs]
+	# Get feature vectors for each directory
+ 	X = [featureVectorsFromDirectory(test_dir) for test_dir in test_dirs]
  	y = []
  	# Add a label to label array for each image
  	for i, label in enumerate(labels):
@@ -20,8 +20,16 @@ def train_with_images(test_dirs, labels):
  	clf = train_classifier(X, y)
  	return clf
 
+
+def train_with_images(image_paths, labels):
+    X = [getHOGInfo(image_file) for image_file in image_paths]
+    clf = train_classifier(X, labels)
+    return clf
+
+
+
 def test():
-	svc = train_with_images(["/Users/ella/Documents/cis400/101_ObjectCategories/bonsai", 
+	svc = train_with_images(["/Users/ella/Documents/cis400/101_ObjectCategories/bonsai",
 					"/Users/ella/Documents/cis400/101_ObjectCategories/crocodile_head"],
 					 ["bonsai", "croc"])
 	X_test = fv("/Users/ella/Documents/cis400/101_ObjectCategories/crocodile_head")
