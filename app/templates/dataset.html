@@ -9,13 +9,19 @@
 
     $(document).ready(function() {
 
-    	var base = 65;
+        var codetokey = { 65 : "A", 83 : "S", 68 : "D", 70 : "F", 32 : "Space", 74 : "J", 75 : "K", 76 : "L", 186 : ";"};
+
+        var newmap = {}
+
+        "{% for category in categories %}"
+            newmap["{{mapping[category]}}"] = "{{category}}"
+        "{% endfor %}"
+
     	$("body").keydown(function(e) {
-    		var key = e.which % 65;
-    		console.log("{{categories}}");
-    		var num_cat = "{{ categories.length }}";
-    		console.log(key)
-    		if (key < num_cat) $(".btn-group-lg").eq(key).click();
+    		var keycode = e.which;
+    		var key = codetokey[keycode];
+            console.log("Selected category: " + newmap[key]);
+            document.getElementById(newmap[key]).click();
     	});
 
   	});
@@ -41,7 +47,7 @@
         </nav>
 
         <!-- Main Body -->
-        <div class="container">
+        <di class="container">
 
             <h1 class="text-center">Label the Image</h1>
             <hr>
@@ -60,9 +66,18 @@
 
             <div class="btn-group-lg text-center">
                 {% for category in categories %}
-                	<a href='/datasets/{{name}}/rate?image_id={{image_id}}&label={{category}}'><button class="btn btn-default category-button"> {{category}} </button> </a>
+                	<a href='/datasets/{{name}}/rate?image_id={{image_id}}&label={{category}}' class="btn btn-default category-button"id = "{{category}}"> {{category}} </a>
                 {% endfor %}
             </div>
+
+            <hr>
+            <h4>Keyboard Shortcuts</h4>
+            <ul>
+                {% for category in categories %}
+                    <li> {{category}} - {{mapping[category]}} </li> </a>
+                {% endfor %}
+            </uL>
+
         </div>
             <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>

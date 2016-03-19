@@ -9,6 +9,8 @@ from app.globals import get_db
 from app.utils.s3 import s3_upload, s3_download, get_s3_url
 
 ALLOWED_EXTENSIONS = ['csv', 'json']
+shortcuts = ["A", "S", "D", "F", "Space", "J", "K", "L", ";"]
+
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -66,8 +68,14 @@ def new():
     return render_template('dataset_upload.html')
 
 def test():
+    categories = ["Apple", "Orange", "Erik"]
+    mapping = {}
 
-    return render_template('dataset.html', name="dataset_name", image="../static/img/mountain.jpg", categories=["Apple", "Orange", "Erik"])
+    i = 0
+    for category in categories:
+        mapping[category] = shortcuts[i]
+        i = i + 1
+    return render_template('dataset.html', name="dataset_name", image="../static/img/mountain.jpg", categories=categories, mapping=mapping)
 
 def view(dataset_name):
     conn = get_db()
