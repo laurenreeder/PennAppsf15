@@ -21,7 +21,7 @@ def unzipFile(fileName, dirName):
 
     tf = tarfile.open(name=fileName)
     tf.extractall(path=extract_dir)
-    return [extract_dir + "/" + member.name for member in tf.getmembers() if member.isfile() and not member.name.split('/')[1].startswith("._")]
+    return [extract_dir + "/" + member.name for member in tf.getmembers() if member.isfile()]
 
 def rate(dataset_name):
     label = request.args.get("label")
