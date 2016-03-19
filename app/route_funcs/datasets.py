@@ -38,6 +38,7 @@ def rate(dataset_name):
 def new():
     if request.method == "POST":
         name = request.form['dataset_name']
+        
         print request.form
         categories = request.form.getlist('category')
         s3_key = None
