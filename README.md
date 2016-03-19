@@ -1,6 +1,15 @@
-# PennAppsf15
+# Active Learning web interface
 
-To run python SimpleApp.py, use
-YOUR_SPARK_HOME/bin/spark-submit \
-  --master local[4] \
-	  SimpleApp.py
+To set up local db:
+```
+$ createdb images
+$ cd app
+$ python create_tables.py
+```
+
+to run app:
+```
+$ cd app
+$ python start.py
+```
+
