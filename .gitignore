@@ -6,3 +6,4 @@ app/uploads
 *.pyc
 *.swp
 .DS_Store
+app/img/
