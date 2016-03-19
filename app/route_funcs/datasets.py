@@ -89,6 +89,14 @@ def view(dataset_name):
         cursor.execute("SELECT category FROM categories WHERE dataset_name = %s", (dataset_name,))
         categories = [tup[0] for tup in cursor.fetchall()]
         cursor.close()
-        return render_template('dataset.html', name=dataset_name, image=path, categories=categories, image_id=id)
+
+        mapping = {}
+
+        i = 0
+        for category in categories:
+            mapping[category] = shortcuts[i]
+            i = i + 1
+
+        return render_template('dataset.html', name=dataset_name, image=path, categories=categories, image_id=id, mapping=mapping)
     return "Dataset does not exist", 404
 
