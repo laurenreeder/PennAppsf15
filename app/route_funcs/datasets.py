@@ -7,7 +7,6 @@ from functools import partial
 from uuid import uuid4
 from app.globals import get_db
 from app.utils.s3 import s3_upload, s3_download, get_s3_url
-from app.mixed_models import models_by_task, run_file
 
 ALLOWED_EXTENSIONS = ['csv', 'json']
 def allowed_file(filename):
