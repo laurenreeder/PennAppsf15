@@ -17,10 +17,11 @@ def allowed_file(filename):
 def unzipFile(fileName, dirName):
     extract_dir = "./static/images/%s" % dirName
     os.mkdir(extract_dir)
-
     tf = tarfile.open(name=fileName)
     tf.extractall(path=extract_dir)
-    return [extract_dir + "/" + member.name for member in tf.getmembers() if member.isfile()]
+
+    return [extract_dir + "/" + member.name for member in tf.getmembers() if member.isfile() and member.name.split('/')[-1][0] != "."]
+
 
 def rate(dataset_name):
     label = request.args.get("label")
