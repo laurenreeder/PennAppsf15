@@ -1,9 +1,12 @@
 import psycopg2
-from app.globals import connect_to_database
+from app.globals import local_connect
 
-conn = connect_to_database()
+conn = local_connect()
 cursor = conn.cursor()
 cursor.execute("CREATE TABLE datasets(name varchar primary key, s3_key varchar)")
+cursor.execute("CREATE TABLE images(id varchar primary key, dataset_name varchar references datasets (name), path varchar, label varchar)")
+cursor.execute("CREATE TABLE categories(category varchar, dataset_name varchar references datasets (name))")
+
 
 cursor.close()
 
