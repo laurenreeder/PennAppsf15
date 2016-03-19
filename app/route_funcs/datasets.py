@@ -58,7 +58,7 @@ def new():
                     image_id = uuid4().hex
                     cursor.execute("INSERT INTO images VALUES (%s,%s,%s)", (image_id, name, path[1:]))
                 for category in categories:
-                    cursor.execute("INSERT INTO categories VALUES (%s,%s)", (name, category))
+                    cursor.execute("INSERT INTO categories VALUES (%s,%s)", (category, name))
                 conn.commit()
                 cursor.close()
                 return redirect(url_for('datasets_view', dataset_name=name))
