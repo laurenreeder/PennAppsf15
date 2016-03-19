@@ -1,5 +1,7 @@
+from __future__ import division
 from sklearn.svm import SVC
 from generate_features import *
+
 
 def train_classifier(X, y):
 	clf = SVC()
@@ -26,7 +28,16 @@ def train_with_images(image_paths, labels):
     clf = train_classifier(X, labels)
     return clf
 
-
+def test_with_images(clf, image_paths, labels):
+	X = [getHOGInfo(image_file) for image_file in image_paths]
+	predictions = clf.predict(X)
+	count = 0
+	correct_count = 0
+	for label, predicted_label in zip(labels, predictions):
+		if label == predicted_label:
+			correct_count += 1
+		count += 1
+	return correct_count / count
 
 def test():
 	svc = train_with_images(["/Users/ella/Documents/cis400/101_ObjectCategories/bonsai",
@@ -35,4 +46,3 @@ def test():
 	X_test = fv("/Users/ella/Documents/cis400/101_ObjectCategories/crocodile_head")
 	print svc.predict(X_test)
 
-test()

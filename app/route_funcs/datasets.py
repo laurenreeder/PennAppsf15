@@ -2,13 +2,14 @@ from flask import request, render_template, redirect, url_for, jsonify, current_
 import os
 import tarfile
 from functools import partial
+from ml import svm
 
 
 from uuid import uuid4
-from app.globals import get_db
+from app.globals import get_db, local_connect
 from app.utils.s3 import s3_upload, s3_download, get_s3_url
 
-ALLOWED_EXTENSIONS = ['csv', 'json']
+ALLOWED_EXTENSIONS = ['tar', 'zip']
 shortcuts = ["A", "S", "D", "F", "Space", "J", "K", "L", ";"]
 
 def allowed_file(filename):
@@ -52,6 +53,8 @@ def new():
                 id = uuid4().hex
                 filename = dataset.filename
                 path_to_file = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                if not os.path.exists(current_app.config['UPLOAD_FOLDER']):
+                    os.mkdir(current_app.config['UPLOAD_FOLDER'])
                 dataset.save(path_to_file)
                 results = unzipFile(path_to_file, str(id))
                 print results
@@ -78,6 +81,17 @@ def test():
         mapping[category] = shortcuts[i]
         i = i + 1
     return render_template('dataset.html', name="dataset_name", image="../static/img/mountain.jpg", categories=categories, mapping=mapping)
+
+def train(dataset_name):
+    conn = local_connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT path, label FROM images WHERE dataset_name = %s and label NOTNULL", (dataset_name,))
+    results = cursor.fetchall()
+    image_paths = ["." + r[0] for r in results]
+    image_labels = [r[1] for r in results]
+    clf = svm.train_with_images(image_paths, image_labels)
+    print svm.test_with_images(clf, image_paths, image_labels)
+
 
 def view(dataset_name):
     conn = get_db()
