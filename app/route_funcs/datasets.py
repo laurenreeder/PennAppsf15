@@ -58,7 +58,7 @@ def new():
                     image_id = uuid4().hex
                     cursor.execute("INSERT INTO images VALUES (%s,%s,%s)", (image_id, name, path[1:]))
                 for category in categories:
-                    cursor.execute("INSERT INTO categories VALUES (%s,%s)", (name, category))
+                    cursor.execute("INSERT INTO categories VALUES (%s,%s)", (category, name))
                 conn.commit()
                 cursor.close()
                 return redirect(url_for('datasets_view', dataset_name=name))
@@ -81,45 +81,4 @@ def view(dataset_name):
         cursor.close()
         return render_template('dataset.html', name=dataset_name, image=path, categories=categories, image_id=id)
     return "Dataset does not exist", 404
-
-def learn(dataset_name):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT s3_key FROM datasets WHERE name = %s LIMIT 1", (dataset_name,))
-    res = cursor.fetchone()
-    cursor.close()
-    if res is not None:
-        s3_key = res[0]
-        return render_template('learning.html', s3_key=s3_key, models_by_task=models_by_task)
-    return "Dataset does not exist", 404
-
-from multiprocessing.pool import Pool
-pool = Pool(processes=2)
-
-results = {}
-def set_results(code, result):
-    global results
-    results[code] = result
-
-
-def run_learning():
-    s3_key = request.form['s3_key']
-    model_type = request.form['model_type']
-    model_name = request.form['model']
-    code = uuid4().hex
-    global results
-    results[code] = None
-    async_result = pool.apply_async(run_file, (s3_key, model_name, model_type), callback=partial(set_results, code))
-    run_file(s3_key, model_name, model_type)
-    return
-
-def get_learning_result():
-    code = request.args['result_id']
-    if results[code] is not None:
-        if type(results[code]) in (list, dict):
-            return jsonify(results[code])
-        else:
-            return results[code]
-    else:
-        return "Unfinished"
 
