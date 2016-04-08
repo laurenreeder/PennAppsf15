@@ -2,7 +2,9 @@ from flask import request, render_template, redirect, url_for, jsonify, current_
 import os
 import tarfile
 from functools import partial
+from cStringIO import StringIO
 from ml import svm
+import threading
 
 
 from uuid import uuid4
@@ -29,11 +31,19 @@ def unzipFile(fileName, dirName):
 def rate(dataset_name):
     label = request.args.get("label")
     id = request.args.get("image_id")
+
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("UPDATE images SET label=%s WHERE dataset_name=%s and id=%s", (label, dataset_name, id))
+    cursor.execute("SELECT count(*) from images WHERE dataset_name=%s and label NOTNULL", (dataset_name,))
+    count = cursor.fetchone()[0]
     cursor.close()
     conn.commit()
+    active_learning = partial(update_surface, dataset_name)
+    if count % 20 == 0:
+        active_learning_thread = threading.Thread(target=active_learning)
+        active_learning_thread.start()
+
     return redirect(url_for('datasets_view', dataset_name=dataset_name))
 
 def new():
@@ -82,21 +92,44 @@ def test():
         i = i + 1
     return render_template('dataset.html', name="dataset_name", image="../static/img/mountain.jpg", categories=categories, mapping=mapping)
 
-def train(dataset_name):
-    conn = local_connect()
-    cursor = conn.cursor()
+def train(dataset_name, db_conn):
+    cursor = db_conn.cursor()
     cursor.execute("SELECT path, label FROM images WHERE dataset_name = %s and label NOTNULL", (dataset_name,))
     results = cursor.fetchall()
+    cursor.close()
     image_paths = ["." + r[0] for r in results]
     image_labels = [r[1] for r in results]
     clf = svm.train_with_images(image_paths, image_labels)
     print svm.test_with_images(clf, image_paths, image_labels)
+    return clf
+
+def update_surface(dataset_name):
+    conn = local_connect()
+    clf = train(dataset_name, conn)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, path FROM images WHERE dataset_name = %s and label ISNULL", (dataset_name,))
+    results = cursor.fetchall()
+    paths = ["." + result[1] for result in results]
+    ids = [result[0] for result in results]
+    feature_vecs = svm.get_features(paths)
+    decs = clf.decision_function(feature_vecs)
+    dec_vals = map(lambda dists: sum(map(abs, dists)), decs)
+    update_data = StringIO('\n'.join(map(lambda tup: tup[0] + '\t' + str(tup[1]), zip(ids, dec_vals))))
+    cursor.execute("CREATE TEMPORARY TABLE surface_updates (id varchar, dist float) ON COMMIT DROP")
+
+    cursor.copy_from(update_data, 'surface_updates')
+    cursor.execute("UPDATE images i SET dist_from_surface = su.dist FROM surface_updates su WHERE i.id = su.id")
+    cursor.close()
+    conn.commit()
+    conn.close()
+    return zip(paths, map(lambda dists: sum(map(abs, dists)), decs))
 
 
 def view(dataset_name):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, path FROM images WHERE dataset_name = %s and label ISNULL LIMIT 1", (dataset_name,))
+    cursor.execute("SELECT id, path FROM images WHERE dataset_name = %s and label ISNULL ORDER BY dist_from_surface ASC LIMIT 1",
+                   (dataset_name,))
     res = cursor.fetchone()
     if res:
         id, path = res

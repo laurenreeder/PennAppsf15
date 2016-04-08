@@ -22,9 +22,12 @@ def train_with_image_dirs(test_dirs, labels):
  	clf = train_classifier(X, y)
  	return clf
 
+def get_features(image_paths):
+	return [getHOGInfo(image_file) for image_file in image_paths]
+
 
 def train_with_images(image_paths, labels):
-    X = [getHOGInfo(image_file) for image_file in image_paths]
+    X = get_features(image_paths)
     clf = train_classifier(X, labels)
     return clf
 
