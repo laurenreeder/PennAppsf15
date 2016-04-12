@@ -7,3 +7,5 @@ app/uploads
 *.swp
 .DS_Store
 app/img/
+image.tar
+test_images/
