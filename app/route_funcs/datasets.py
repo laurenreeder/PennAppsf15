@@ -114,3 +114,18 @@ def view(dataset_name):
         return render_template('dataset.html', name=dataset_name, image=path, categories=categories, image_id=id, mapping=mapping)
     return "Dataset does not exist", 404
 
+def results(dataset_name):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT path, label FROM images WHERE dataset_name = %s and label NOTNULL ORDER BY label", (dataset_name,))
+    results = cursor.fetchall()
+    labeled_images = {}
+
+    for path, label in results:
+        if label in labeled_images:
+            labeled_images[label] = labeled_images[label] + [path]
+        else:
+            labeled_images[label] = [path]
+
+    return render_template('learning.html', labeled_images=labeled_images, labels=labeled_images.keys(), name=dataset_name)
+

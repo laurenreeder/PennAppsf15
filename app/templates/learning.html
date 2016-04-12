@@ -1,56 +1,62 @@
 <!DOCTYPE html>
+<!--  Needs image = image link, categories, -->
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Learning</title>
+    <link rel='stylesheet' type="text/css" href="/static/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-filestyle.min.js"> </script>
 
-        <link rel='stylesheet' type="text/css" href="/static/css/style.css">
-        <link rel='stylesheet' type="text/css" href="/static/css/style.css">
-        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-          <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-          <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-        <![endif]-->
+    <style>
+
+    .results {
+        height: 150px;
+    }
+
+    body {
+        padding-bottom: 50px;
+    }
+
+    </style>
+
+    <head>
+          <title>Machine Learning Results</title>
     </head>
     <body>
-        <div id="overlay"></div>
-        <style>
-            #overlay {
-                position: fixed;
-                background: rgba(0,0,0,0.8);
-                width: 100%;
-                height: 100%;
-                top: 0;
-                left: 0;
-            }
-            .hide {
-                display: none;
-            }
-        </style>
-        <script>
-            $(window).load(function() {
-             $('#overlay').addClass('hide');
-            });
-        </script>
+        <!-- Nav Bar: Eventally own file -->
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <div class="container-fluid">
 
-        <h1>Learning the model</h1>
-        <div>Results:
-          <!-- name of model run -->
-          <!-- returned results... what format? idk! -->
+                <!-- Brand and toggle get grouped for better mobile display -->
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="#">User-Driven Image Labeling and Classification</a>
+                    </div>
+
+                </div><!-- /.container-fluid -->
+            </div>
+        </nav>
+
+        <!-- Main Body -->
+        <div class="container">
+
+            <h1 class="text-center">Results of Classification</h1>
+            <hr>
+
+            {% for label in labels %}
+            <h2 class="text-left">{{label}}</h2>
+                {% for path in labeled_images[label] %}
+                <img class="img-thumbnail results" src="{{path}}">
+                {% endfor %}
+            <hr>
+            {% endfor %}
+
+            <a class="btn btn-default pull-right" href="/datasets/{{name}}" role="button">Train Again <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span></a>
+
         </div>
+            <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 
-        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-        <!-- Include all compiled plugins (below), or include individual files as needed -->
-        <script src="/static/js/bootstrap.min.js"></script>
-    </body>
-
-
+            <!-- Include all compiled plugins (below), or include individual files as needed -->
+            <script src="/static/js/bootstrap.min.js"></script>
+     </body>
 </html>
-
-
-<!-- display first 10 rows, select to customize -->
 
