@@ -27,6 +27,10 @@ def unzipFile(fileName, dirName):
 
     return [extract_dir + "/" + member.name for member in tf.getmembers() if member.isfile() and member.name.split('/')[-1][0] != "."]
 
+def bg_train(dataset_name):
+    bg_thread = threading.Thread(target=partial(update_model, dataset_name))
+    bg_thread.start()
+
 
 def rate(dataset_name):
     label = request.args.get("label")
@@ -35,14 +39,13 @@ def rate(dataset_name):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("UPDATE images SET label=%s WHERE dataset_name=%s and id=%s", (label, dataset_name, id))
+    cursor.execute("UPDATE datasets SET model_updated = false WHERE name=%s",  (dataset_name,))
     cursor.execute("SELECT count(*) from images WHERE dataset_name=%s and label NOTNULL", (dataset_name,))
     count = cursor.fetchone()[0]
     cursor.close()
     conn.commit()
-    active_learning = partial(update_surface, dataset_name)
     if count % 20 == 0:
-        active_learning_thread = threading.Thread(target=active_learning)
-        active_learning_thread.start()
+        bg_train(dataset_name)
 
     return redirect(url_for('datasets_view', dataset_name=dataset_name))
 
@@ -103,8 +106,8 @@ def train(dataset_name, db_conn):
     print svm.test_with_images(clf, image_paths, image_labels)
     return clf
 
-def update_surface(dataset_name):
-    conn = local_connect()
+def update_model(dataset_name):
+    conn = get_db()
     clf = train(dataset_name, conn)
     cursor = conn.cursor()
     cursor.execute("SELECT id, path FROM images WHERE dataset_name = %s and label ISNULL", (dataset_name,))
@@ -113,16 +116,26 @@ def update_surface(dataset_name):
     ids = [result[0] for result in results]
     feature_vecs = svm.get_features(paths)
     decs = clf.decision_function(feature_vecs)
+    predictions = clf.predict(feature_vecs)
     dec_vals = map(lambda dists: sum(map(abs, dists)), decs)
-    update_data = StringIO('\n'.join(map(lambda tup: tup[0] + '\t' + str(tup[1]), zip(ids, dec_vals))))
-    cursor.execute("CREATE TEMPORARY TABLE surface_updates (id varchar, dist float) ON COMMIT DROP")
-
-    cursor.copy_from(update_data, 'surface_updates')
-    cursor.execute("UPDATE images i SET dist_from_surface = su.dist FROM surface_updates su WHERE i.id = su.id")
+    update_data = StringIO('\n'.join(map(lambda tup: tup[0] + '\t' + tup[1] + '\t' + str(tup[2]),
+                                         zip(ids, predictions, dec_vals))))
+    cursor.execute("CREATE TEMPORARY TABLE surface_updates (id varchar, prediction varchar, dist float) ON COMMIT DROP")
+    cursor.copy_from(update_data, 'model_updates')
+    cursor.execute("UPDATE images i SET dist_from_surface = mu.dist, prediction = mu.prediction FROM model_updates mu WHERE i.id = mu.id")
+    cursor.execute("UPDATE datasets SET model_updated = true WHERE name = %s", (dataset_name,))
     cursor.close()
     conn.commit()
     conn.close()
     return zip(paths, map(lambda dists: sum(map(abs, dists)), decs))
+
+def get_predictions(dataset_name):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT ")
+
+
+
 
 
 def view(dataset_name):
@@ -146,6 +159,41 @@ def view(dataset_name):
 
         return render_template('dataset.html', name=dataset_name, image=path, categories=categories, image_id=id, mapping=mapping)
     return "Dataset does not exist", 404
+
+
+def model_is_updated(db_conn, dataset_name):
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT model_updated from datasets WHERE name = %s", (dataset_name, ))
+    updated = cursor.fetchone()[0]
+    cursor.close()
+    return updated
+
+
+def train_if_not_updated(db_conn, dataset_name):
+    if model_is_updated(db_conn, dataset_name):
+        bg_train(dataset_name)
+
+
+def get_results(dataset_name):
+    conn = get_db()
+    if model_is_updated(conn, dataset_name):
+        cursor = conn.cursor()
+        cursor.execute("SELECT path, prediction FROM images WHERE dataset_name = %s and label ISNULL ORDER BY prediction", (dataset_name,))
+        results = cursor.fetchall()
+        predictions = {}
+        for path, prediction in results:
+            if prediction in predictions:
+                predictions[prediction] += [path]
+            else:
+                predictions[prediction] = [path]
+        return jsonify({"updated": True,
+                        "prediction_html": render_template('learning_results.html', labeled_images=predictions)})
+    else:
+        bg_train(dataset_name)
+        return jsonify({"updated": False})
+
+
+
 
 def results(dataset_name):
     conn = get_db()
