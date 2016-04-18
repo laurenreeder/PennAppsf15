@@ -6,6 +6,7 @@ from os import listdir
 from os.path import isfile, join
 from functools import partial
 import numpy as np
+from tqdm import tqdm
 
 
 def getHOGInfo(image_file, transform_size=(300,300)):
@@ -22,6 +23,6 @@ def getHOGInfo(image_file, transform_size=(300,300)):
 
 def featureVectorsFromDirectory(directory_name, transform_size=(200, 300)):
     filenames = [join(directory_name, f) for f in listdir(directory_name) if isfile(join(directory_name, f))]
-    return np.array(map(partial(getHOGInfo, transform_size=transform_size), filenames))
+    return np.array(map(partial(getHOGInfo, transform_size=transform_size), tqdm(filenames)))
 
 

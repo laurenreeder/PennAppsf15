@@ -4,7 +4,8 @@ from generate_features import *
 
 
 def train_classifier(X, y):
-	clf = SVC()
+	clf = SVC(C=100.0
+			  )
 	clf.fit(X, y)
 	return clf
 

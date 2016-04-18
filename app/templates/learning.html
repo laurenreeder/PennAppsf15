@@ -4,6 +4,28 @@
     <link rel='stylesheet' type="text/css" href="/static/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap-filestyle.min.js"> </script>
+    <script type="text/javascript">
+        updated = false;
+        function req_interval() {
+            setTimeout(function(){
+                console.log('request');
+                $.ajax({ url: "/datasets/{{ name }}/get_predictions", success: function(data){
+                //Update your dashboard gauge
+                    console.log(data);
+
+                    if (data.updated) {
+                        updated = true;
+                        $('#loading').remove();
+                        $(data.prediction_html).insertBefore('#labeled');
+                    } else {
+                        req_interval();
+                    }
+                }, dataType: "json"});
+            }, 2000);
+        }
+        req_interval();
+
+    </script>
 
     <style>
 
@@ -40,14 +62,19 @@
 
             <h1 class="text-center">Results of Classification</h1>
             <hr>
-
-            {% for label in labels %}
-            <h2 class="text-left">{{label}}</h2>
+            <div id="loading">Loading Predictions...</div>
+            <div id="labeled">
+                <h1>Labeled Instances</h1>
+                {% for label in labels %}
+                <h2 class="text-left">{{label}}</h2>
                 {% for path in labeled_images[label] %}
                 <img class="img-thumbnail results" src="{{path}}">
                 {% endfor %}
-            <hr>
-            {% endfor %}
+                <hr>
+                {% endfor %}
+            </div>
+
+
 
             <a class="btn btn-default pull-right" href="/datasets/{{name}}" role="button">Train Again <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span></a>
 

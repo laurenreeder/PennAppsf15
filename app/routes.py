@@ -13,6 +13,5 @@ def register_routes(app):
     app.add_url_rule('/datasets/<dataset_name>', 'datasets_view', datasets.view, methods=['GET'])
     app.add_url_rule('/datasets/<dataset_name>/results', 'datasets_results', datasets.results, methods=['GET'])
     app.add_url_rule('/datasets/<dataset_name>/get_predictions', 'datasets_get_results', datasets.get_predictions, methods=['GET'])
-    #app.add_url_rule('/datasets/test', 'datasets_test', datasets.test, methods=['GET'])
 
 
