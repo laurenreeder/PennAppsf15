@@ -5,7 +5,7 @@ from functools import partial
 from cStringIO import StringIO
 from ml import svm
 import threading
-
+import mturk import create_hit as mt
 
 from uuid import uuid4
 from app.globals import get_db, local_connect
@@ -77,6 +77,7 @@ def new():
                 for path in results:
                     image_id = uuid4().hex
                     cursor.execute("INSERT INTO images VALUES (%s,%s,%s)", (image_id, name, path[1:]))
+                    s3_upload(path[1:])
                 for category in categories:
                     cursor.execute("INSERT INTO categories VALUES (%s,%s)", (category, name))
                 conn.commit()
@@ -130,6 +131,18 @@ def update_model(dataset_name, conn):
     print "trained"
     return zip(paths, map(lambda dists: sum(map(abs, dists)), decs))
 
+def mturk(dataset_name):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT path FROM images WHERE dataset_name = %s", (dataset_name,))
+    image_paths = cursor.fetchall()
+    cursor.execute("SELECT category FROM categories WHERE dataset_name = %s", (dataset_name,))
+    categories = cursor.fetchall()
+    HIT_ids = []
+    for image_path in image_paths:
+        s3_url = get_s3_url(image_path)
+        HIT_ids.append(mt.create_hit(s3_url, categories))
+    print HIT_ids
 
 def view(dataset_name):
     conn = get_db()
