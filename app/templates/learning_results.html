@@ -1,6 +1,9 @@
-{% for label in labels %}
+<div id="predictions">
+    <h1>Predictions</h1>
+{% for label in labeled_images %}
 <h2 class="text-left">{{label}}</h2>
     {% for path in labeled_images[label] %}
     <img class="img-thumbnail results" src="{{path}}">
     {% endfor %}
 {% endfor %}
+</div>

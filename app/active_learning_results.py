@@ -26,7 +26,9 @@ def train(features):
 def sorted_features(clf, features):
     vals = clf.decision_function([x[0] for x in features])
     dec_vals = map(lambda dists: sum(map(abs, dists)), vals)
-    return [x for (y,x) in sorted(zip(dec_vals, features))]
+    #print dec_vals
+    #print features
+    return [x for (y,x) in sorted(zip(dec_vals, features), key=lambda x: x[0])]
 
 
 def get_accuracy(clf, features):
@@ -42,16 +44,30 @@ for i in xrange(1, 20):
     print "%d training instances: %0.2f accuracy" % (increment*i, get_accuracy(clf, test_features))
 
 
-init_training = train_features[:increment]
-curr_features = init_training
-rest_features = train_features[increment:]
-curr_model = train(init_training)
-for i in xrange(2, 20):
-    rest_features = sorted_features(curr_model, rest_features)
-    curr_features += rest_features[:increment]
-    rest_features = rest_features[increment:]
-    curr_model = train(curr_features)
-    print "%d active training instances: %0.2f accuracy" % (increment*i, get_accuracy(curr_model, test_features))
+total = {(incr*increment): 0 for incr in xrange(2, 20)}
+
+def do_active():
+    random.shuffle(all_features)
+    train_features = all_features[:train_split]
+    test_features = all_features[train_split:]
+    init_training = train_features[:increment]
+    curr_features = init_training
+    rest_features = train_features[increment:]
+    curr_model = train(init_training)
+    for i in xrange(2, 20):
+        rest_features = sorted_features(curr_model, rest_features)
+        curr_features += rest_features[:increment]
+        random.shuffle(curr_features)
+        rest_features = rest_features[increment:]
+        curr_model = train(curr_features)
+        total[increment*i] += get_accuracy(curr_model, test_features)
+        print "%d active training instances: %0.2f accuracy" % (increment*i, get_accuracy(curr_model, test_features))
+
+
+from tqdm import tqdm
+for i in tqdm(xrange(0,10)):
+    do_active()
+print total
 
 
 
