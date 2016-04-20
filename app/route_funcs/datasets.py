@@ -5,7 +5,7 @@ from functools import partial
 from cStringIO import StringIO
 from ml import svm
 import threading
-import mturk import create_hit as mt
+from mturk import create_hit as mt
 
 from uuid import uuid4
 from app.globals import get_db, local_connect
