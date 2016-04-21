@@ -50,7 +50,7 @@ def create_signature(service, operation, timestamp):
 def make_question(image, labels):
     questionform = '<QuestionForm xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2005-10-01/QuestionForm.xsd">'
     questionform += "<Question><QuestionIdentifier>image_label</QuestionIdentifier><IsRequired>true</IsRequired>"
-    questionform += "<QuestionContent><Text>Which of these labels best describes the contents of this image?</Text><Binary><MimeType><Type>image</Type></MimeType><DataURL>" + image + "</DataURL><AltText>Image to classify</AltText></Binary></QuestionContent>"
+    questionform += "<QuestionContent><Text>Which of these labels best describes the contents of this image?</Text><Binary><MimeType><Type>image</Type></MimeType><DataURL>" + image.strip().replace("&", "&amp;") + "</DataURL><AltText>Image to classify</AltText></Binary></QuestionContent>"
     questionform += "<AnswerSpecification><SelectionAnswer><StyleSuggestion>radiobutton</StyleSuggestion><Selections>"
     for i, l in enumerate(labels):
         questionform += "<Selection><SelectionIdentifier>" + l + "</SelectionIdentifier><Text>" + l + "</Text></Selection>"
@@ -67,9 +67,10 @@ def create_hit(image, labels):
             root = ET.fromstring(response)
             is_valid = root.findall(".//IsValid")[0].text
             if is_valid == "False":
-                sys.stderr.write("Invalid Create HIT attempt.")
+                sys.stderr.write("Invalid Create HIT attempt. Reason: " + root.findall(".//Message")[0].text + "\n")
             else:
                 HIT_id = root.findall(".//HITId")[0].text
+                print "Posted HIT for image: ", image
                 return HIT_id
         except ValueError:
             sys.stderr.write('JSON ERROR\n')

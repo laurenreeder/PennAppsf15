@@ -140,8 +140,7 @@ def mturk(dataset_name):
     categories = cursor.fetchall()
     HIT_ids = []
     for image_path in image_paths:
-        s3_url = get_s3_url(image_path[0])
-        print s3_url
+        s3_url = get_s3_url(image_path[0])        
         HIT_ids.append(mt.create_hit(s3_url, [c[0] for c in categories]))
 
     return render_template('mturk_results.html')
