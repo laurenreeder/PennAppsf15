@@ -28,6 +28,13 @@
 
 
     </script>
+
+    <style>
+    body {
+        padding-bottom: 50px;
+    }
+    </style>
+
     <head>
     	  <title> Label the Image </title>
     </head>
@@ -47,7 +54,7 @@
         </nav>
 
         <!-- Main Body -->
-        <di class="container">
+        <div class="container">
 
             <h1 class="text-center">Label the Image</h1>
             <hr>
@@ -59,14 +66,14 @@
 
 
             <div class="classify-image">
-            	<img class="img-responsive img-rounded" src={{ image }}>
+            	<img class="img-responsive img-rounded" src="{{image}}">
             </div>
 
             <br>
 
             <div class="btn-group-lg text-center">
                 {% for category in categories %}
-                	<a href='/datasets/{{name}}/rate?image_id={{image_id}}&label={{category}}' class="btn btn-default category-button"id = "{{category}}"> {{category}} </a>
+                	<a href='/datasets/{{name}}/rate?image_id={{image_id}}&label={{category}}' class="btn btn-default category-button" id="{{category}}"> {{category}} </a>
                 {% endfor %}
             </div>
 
@@ -76,7 +83,9 @@
                 {% for category in categories %}
                     <li> {{category}} - {{mapping[category]}} </li> </a>
                 {% endfor %}
-            </uL>
+            </ul>
+
+            <a class="btn btn-default pull-right" href="/datasets/{{name}}/results" role="button">See Results <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></a>
 
         </div>
             <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
