@@ -8,7 +8,7 @@ import threading
 from mturk import create_hit as mt
 from uuid import uuid4
 from app.globals import get_db, local_connect
-from app.utils.s3 import s3_upload, s3_download, get_s3_url
+from app.utils.s3 import s3_upload, s3_download, get_s3_url, s3_upload_images
 
 ALLOWED_EXTENSIONS = ['tar', 'zip']
 shortcuts = ["A", "S", "D", "F", "Space", "J", "K", "L", ";"]
@@ -76,9 +76,10 @@ def new():
                 for path in results:
                     image_id = uuid4().hex
                     cursor.execute("INSERT INTO images VALUES (%s,%s,%s)", (image_id, name, path[1:]))
-                    s3_upload(path[1:])
                 for category in categories:
                     cursor.execute("INSERT INTO categories VALUES (%s,%s)", (category, name))
+                s3_thread = threading.Thread(target=partial(s3_upload_images, results, current_app.config["S3_KEY"], current_app.config["S3_SECRET"], current_app.config["S3_BUCKET"]))
+                s3_thread.start()
                 conn.commit()
                 cursor.close()
                 return redirect(url_for('datasets_view', dataset_name=name))

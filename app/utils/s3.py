@@ -5,18 +5,26 @@ from flask import current_app as app
 from werkzeug import secure_filename
 import urllib2
 
-def s3_upload(source_file,acl='public-read'):
-    curr_file = open(source_file)
+def s3_upload_images(image_list, S3_KEY, S3_SECRET, S3_BUCKET):
+    images_and_s3_dests = []
+    for image in image_list:
+        print "uploading image: ", image
+        dest_filename = s3_upload(image[1:], S3_KEY, S3_SECRET, S3_BUCKET)
+        images_and_s3_dests.append((image, dest_filename))
+    return images_and_s3_dests
+
+
+def s3_upload(source_file, S3_KEY, S3_SECRET, S3_BUCKET, acl='public-read'):
+    curr_file = open('.'+source_file)
     source_filename = secure_filename(source_file)
     source_extension = file_extension(source_filename)
-    destination_filename = uuid4().hex + source_extension
+    destination_filename = source_filename
 
     # Connect to S3
-    conn = boto.connect_s3(app.config["S3_KEY"], app.config["S3_SECRET"])
-    b = conn.get_bucket(app.config["S3_BUCKET"])
+    conn = boto.connect_s3(S3_KEY, S3_SECRET)
+    b = conn.get_bucket(S3_BUCKET)
 
     # Upload the File
-    print destination_filename
     sml = b.new_key(destination_filename)
     sml.set_contents_from_string(curr_file.read())
 
@@ -64,7 +72,7 @@ def get_s3_url(filename):
     # Connect to S3
     conn = boto.connect_s3(app.config["S3_KEY"], app.config["S3_SECRET"])
     b = conn.get_bucket(app.config["S3_BUCKET"])
-    key = b.get_key(filename)
+    key = b.get_key(secure_filename(filename))
     if key:
         return key.generate_url(3600)
     else:
