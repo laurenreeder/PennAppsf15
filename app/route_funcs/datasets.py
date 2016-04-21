@@ -51,7 +51,7 @@ def rate(dataset_name):
 def new():
     if request.method == "POST":
         name = request.form['dataset_name']
-
+        
         print request.form
         categories = request.form.getlist('category')
         s3_key = None
@@ -76,7 +76,7 @@ def new():
                 for path in results:
                     image_id = uuid4().hex
                     cursor.execute("INSERT INTO images VALUES (%s,%s,%s)", (image_id, name, path[1:]))
-                    s3_upload(path)
+                    s3_upload(path[1:])
                 for category in categories:
                     cursor.execute("INSERT INTO categories VALUES (%s,%s)", (category, name))
                 conn.commit()
@@ -141,7 +141,8 @@ def mturk(dataset_name):
     for image_path in image_paths:
         s3_url = get_s3_url(image_path)
         HIT_ids.append(mt.create_hit(s3_url, categories))
-    print HIT_ids
+
+    return render_template('mturk_results.html')
 
 def view(dataset_name):
     conn = get_db()
