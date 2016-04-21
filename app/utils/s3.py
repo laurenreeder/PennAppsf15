@@ -6,7 +6,8 @@ from werkzeug import secure_filename
 import urllib2
 
 def s3_upload(source_file,acl='public-read'):
-    source_filename = secure_filename(source_file.filename)
+    curr_file = open(source_file)
+    source_filename = secure_filename(source_file)
     source_extension = file_extension(source_filename)
     destination_filename = uuid4().hex + source_extension
 
@@ -17,7 +18,7 @@ def s3_upload(source_file,acl='public-read'):
     # Upload the File
     print destination_filename
     sml = b.new_key(destination_filename)
-    sml.set_contents_from_string(source_file.read())
+    sml.set_contents_from_string(curr_file.read())
 
     # Set the file's permissions.
     sml.set_acl(acl)

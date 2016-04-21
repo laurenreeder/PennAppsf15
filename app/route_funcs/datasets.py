@@ -51,7 +51,7 @@ def rate(dataset_name):
 def new():
     if request.method == "POST":
         name = request.form['dataset_name']
-        
+
         print request.form
         categories = request.form.getlist('category')
         s3_key = None
@@ -76,7 +76,7 @@ def new():
                 for path in results:
                     image_id = uuid4().hex
                     cursor.execute("INSERT INTO images VALUES (%s,%s,%s)", (image_id, name, path[1:]))
-                    s3_upload(path[1:])
+                    s3_upload(path)
                 for category in categories:
                     cursor.execute("INSERT INTO categories VALUES (%s,%s)", (category, name))
                 conn.commit()
