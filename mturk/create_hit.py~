@@ -72,8 +72,6 @@ def create_hit(image, labels):
         print e
         sys.stderr.write('BAD REQUEST\n')
 
-create_hit()
-
 
 
 

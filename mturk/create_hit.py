@@ -7,6 +7,7 @@ import base64
 import collections
 import sha
 from datetime import datetime
+import xml.etree.ElementTree as ET
 
 AWS_ACCESS_KEY_ID = "AKIAJKPJQGJNYMWPMR6Q"
 AWS_SECRET_ACCESS_KEY = "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"
@@ -59,12 +60,17 @@ def make_question(image, labels):
 
 def create_hit(image, labels):
     requesturl = create_hit_request(image, labels)
-    print requesturl
     try:
         data = urllib2.urlopen(requesturl)
         try:
             response = data.read()
-            print response
+            root = ET.fromstring(response)
+            is_valid = root.findall(".//IsValid")[0].text
+            if is_valid == "False":
+                sys.stderr.write("Invalid Create HIT attempt.")
+            else:
+                HIT_id = root.findall(".//HITId")[0].text
+                return HIT_id
         except ValueError:
             sys.stderr.write('JSON ERROR\n')
             return None
